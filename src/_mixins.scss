@@ -1,0 +1,516 @@
+//-----------------------------------------------------
+// mixin scss
+// 包括常用的mixin，%及@function
+// mixin，通过@include调用，样式通过拷贝的方式使用，尤其适用于传递参数
+// %，通过@extend调用，样式通过组合申明的方式使用，适用于不传参数的代码片段
+// @function，返回一个值，用于调用
+// mixin & %
+// 既定义了mixin也定义了%，根据需求使用@include或@extend调用
+//-----------------------------------------------------
+// css3
+// prefix兼容前缀，wap端默认添加-webkit-和-ms-；app端可不添加-ms-
+// @include css3(transform, scale3d(1, 0.5, 1)) ->
+// -webkit-transform: scale3d(1, 0.5, 1);
+// -ms-transform: scale3d(1, 0.5, 1);
+// transform: scale3d(1, 0.5, 1);
+//-----------------------------------------------------
+@mixin css3($property, $value...) {
+  @each $prefix in -webkit-, -ms-, '' {
+    #{$prefix}#{$property}: $value;
+  }
+}
+
+// rem
+// thanks:http://drublic.de/blog/rem-fallback-sass-less/;
+// @include rem(width, 20) -> width: 280px; width: 20rem;
+//-----------------------------------------------------
+@mixin rem($property, $px) {
+  #{$property}: $px * $font-size-base;
+  #{$property}: #{$px}rem;
+}
+
+// @include rem-font-size(2) -> font-size: 28px; font-size: 2rem;
+//-----------------------------------------------------
+@mixin rem-font-size($px) {
+  font-size: $px * $font-size-base;
+  font-size: #{$px}rem;
+}
+
+// bem
+// elements get appended with "__" and the $name
+// .block {@include bem-e(element){...}} -> .block__element {...}
+//-----------------------------------------------------
+@mixin bem-e($name) {
+  @at-root #{&}__#{$name} {
+    @content;
+  }
+}
+
+// modifiers get appended with "--" and the $name
+// .block {@include bem-m(modifier){...}} -> .block--modifier {...}
+//-----------------------------------------------------
+@mixin bem-m($name) {
+  @at-root #{&}--#{$name} {
+    @content;
+  }
+}
+
+// mixin elements and modifiers
+// .block {@include bem-e-m(element, modifier){...}} -> .block__element--modifier {...}
+//-----------------------------------------------------
+@mixin bem-e-m($e-name, $m-name) {
+  @at-root #{&}__#{$e-name}--#{$m-name} {
+    @content;
+  }
+}
+
+// float
+// @include float -> float: left;
+//-----------------------------------------------------
+@mixin float($float: left) {
+  float: $float;
+}
+
+// clearfix
+// @include clearfix;
+//-----------------------------------------------------
+@mixin clearfix {
+  &::before,
+  &::after {
+    content: '';
+    display: table;
+  }
+  &::after {
+    clear: both;
+  }
+}
+
+// @extend clearfix;
+//-----------------------------------------------------
+%clearfix {
+  @include clearfix;
+}
+
+// hide
+// @include hide;
+//-----------------------------------------------------
+@mixin hide {
+  display: none;
+}
+
+// @extend hide;
+//-----------------------------------------------------
+%hide {
+  @include hide;
+}
+
+// show
+// @include show;
+//-----------------------------------------------------
+@mixin show {
+  display: block;
+}
+
+// @extend show;
+//-----------------------------------------------------
+%show {
+  @include show;
+}
+
+// arrow
+// 三角箭头
+// @include arrow(top, 5px, $bg-color-base)
+//-----------------------------------------------------
+@mixin arrow($direction, $size, $color) {
+  width: 0;
+  height: 0;
+  border-width: $size;
+  cursor: pointer;
+  @extend %text-overflow;
+  @if $direction==top {
+    border-style: dashed dashed solid dashed;
+    border-color: transparent transparent $color transparent;
+    border-top: none;
+  } @else if $direction==right {
+    border-style: dashed dashed dashed solid;
+    border-color: transparent transparent transparent $color;
+    border-right: none;
+  } @else if $direction==bottom {
+    border-style: solid dashed dashed dashed;
+    border-color: $color transparent transparent transparent;
+    border-bottom: none;
+  } @else if $direction==left {
+    border-style: dashed solid dashed dashed;
+    border-color: transparent $color transparent transparent;
+    border-left: none;
+  }
+}
+
+// border
+// 一像素边框
+// @include border(top, $border-color-assist)
+//-----------------------------------------------------
+@mixin border($direction: all, $color: $border-color-main) {
+  position: relative;
+  &::after {
+    content: '';
+    position: absolute;
+    @if $direction==top {
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background-color: $color;
+      @include css3(transform-origin, 0 0);
+      @include css3(transform, scale3d(1, 0.5, 1));
+    } @else if $direction==right {
+      top: 0;
+      right: 0;
+      width: 1px;
+      height: 100%;
+      background-color: $color;
+      @include css3(transform-origin, 100% 0);
+      @include css3(transform, scale3d(0.5, 1, 1));
+    } @else if $direction==bottom {
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 1px;
+      background-color: $color;
+      @include css3(transform-origin, 0 100%);
+      @include css3(transform, scale3d(1, 0.5, 1));
+    } @else if $direction==left {
+      top: 0;
+      left: 0;
+      width: 1px;
+      height: 100%;
+      background-color: $color;
+      @include css3(transform-origin, 0 0);
+      @include css3(transform, scale3d(0.5, 1, 1));
+    } @else if $direction==all {
+      top: 0;
+      left: 0;
+      box-sizing: border-box;
+      width: 200%;
+      height: 200%;
+      border: 1px solid $color;
+      @include css3(transform-origin, 0 0);
+      @include css3(transform, (scale(0.5)));
+    }
+  }
+}
+
+// border-radius
+// 一像素边框带圆角，必须结合border的mixin来使用，否则无效
+// @include border(top, $border-color-assist);
+// @include border-radius(8px)
+//-----------------------------------------------------
+@mixin border-radius($radius: $border-radius-base) {
+  border-radius: $radius;
+  &::after {
+    border-radius: $radius * 2;
+  }
+}
+
+// text-overflow
+// 单行文本超出隐藏
+// @include text-overflow;
+//-----------------------------------------------------
+@mixin text-overflow {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+// @extend text-overflow;
+//-----------------------------------------------------
+%text-overflow {
+  @include text-overflow;
+}
+
+// text-hide
+// 块级元素隐藏文字
+// @include text-hide;
+//-----------------------------------------------------
+@mixin text-hide {
+  font-size: 0;
+  line-height: 0;
+  overflow: hidden;
+}
+
+// @extend text-hide;
+//-----------------------------------------------------
+%text-hide {
+  @include text-hide;
+}
+
+// text-break
+// 块级元素文字这段
+// @include text-break;
+//-----------------------------------------------------
+@mixin text-break {
+  word-break: break-all;
+  word-wrap: break-word;
+}
+
+// @extend text-break;
+//-----------------------------------------------------
+%text-break {
+  @include text-break;
+}
+
+// text-clamp
+// 多行文字超出隐藏
+// @include text-clamp(3);
+//-----------------------------------------------------
+@mixin text-clamp($clamp: 2) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: $clamp;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+// col
+// 页面栅格化
+// @include col(4);
+//-----------------------------------------------------
+@mixin col($num, $cols: 12) {
+  @include float;
+  box-sizing: border-box;
+  width: ($num / $cols) * 100%;
+}
+
+// flex
+// flex父级容器
+// @include flex;
+//-----------------------------------------------------
+@mixin flex {
+  display: -webkit-box;
+  @include css3(display, flex);
+}
+
+// flex-direction
+// flex主轴方向：左到右（默认） | 右到左 | 上到下 | 下到上
+// @include flex-direction(row);
+//-----------------------------------------------------
+@mixin flex-direction($direction: row) {
+  @if $direction==row {
+    -webkit-box-direction: normal;
+    -webkit-box-orient: horizontal;
+    @include css3(flex-direction, row);
+  } @else if $direction==column {
+    -webkit-box-direction: normal;
+    -webkit-box-orient: vertical;
+    @include css3(flex-direction, column);
+  } @else if $direction==row-reverse {
+    -webkit-box-pack: end;
+    -webkit-box-direction: reverse;
+    -webkit-box-orient: horizontal;
+    @include css3(flex-direction, row-reverse);
+  } @else if $direction==column-reverse {
+    -webkit-box-pack: end;
+    -webkit-box-direction: reverse;
+    -webkit-box-orient: vertical;
+    @include css3(flex-direction, column-reverse);
+  }
+}
+
+// flex-wrap
+// flex换行：不换行（默认） | 换行 | 换行并第一行在下方
+// @include flex-wrap(nowrap);
+//-----------------------------------------------------
+@mixin flex-wrap($wrap: nowrap) {
+  @if $wrap==nowrap {
+    -webkit-box-lines: single;
+    @include css3(flex-wrap, nowrap);
+  } @else if $wrap==wrap {
+    -webkit-box-lines: multiple;
+    @include css3(flex-wrap, wrap);
+  } @else if $wrap==wrap-reverse {
+    -webkit-box-lines: multiple;
+    @include css3(flex-wrap, wrap-reverse);
+  }
+}
+
+// flex-justify
+// flex主轴对齐方式：左对齐（默认） | 右对齐 | 居中对齐 | 两端对齐 | 平均分布
+// @include flex-justify(start);
+//-----------------------------------------------------
+@mixin flex-justify($justify: start) {
+  @if $justify==start {
+    -webkit-box-pack: start;
+    @include css3(justify-content, flex-start);
+  } @else if $justify==end {
+    -webkit-box-pack: end;
+    @include css3(justify-content, flex-end);
+  } @else if $justify==center {
+    -webkit-box-pack: center;
+    @include css3(justify-content, center);
+  } @else if $justify==between {
+    -webkit-box-pack: justify;
+    @include css3(justify-content, space-between);
+  } @else if $justify==around {
+    -webkit-box-pack: justify;
+    @include css3(justify-content, space-around);
+  }
+}
+
+// flex-align
+// flex交叉轴对齐方式：顶部对齐 | 底部对齐 | 居中对齐 | 上下对齐并铺满（默认） | 文本基线对齐
+// @include flex-align(start);
+//-----------------------------------------------------
+@mixin flex-align($align: stretch) {
+  @if $align==start {
+    -webkit-box-align: start;
+    @include css3(align-items, flex-start);
+  } @else if $align==end {
+    -webkit-box-align: end;
+    @include css3(align-items, flex-end);
+  } @else if $align==center {
+    -webkit-box-align: center;
+    @include css3(align-items, center);
+  } @else if $align==stretch {
+    -webkit-box-align: stretch;
+    @include css3(align-items, stretch);
+  } @else if $align==baseline {
+    -webkit-box-align: baseline;
+    @include css3(align-items, baseline);
+  }
+}
+
+// flex-align-content
+// flex多主轴对齐：顶部对齐 | 底部对齐 | 居中对齐 | 两端对齐 | 平均分布 | 上下对齐并铺满（默认）
+// @include flex-align-content(start);
+//-----------------------------------------------------
+@mixin flex-align-content($align-content: stretch) {
+  @if $align-content==start {
+    @include css3(align-content, flex-start);
+  } @else if $align-content==end {
+    @include css3(align-content, flex-end);
+  } @else if $align-content==center {
+    @include css3(align-content, center);
+  } @else if $align-content==space-between {
+    @include css3(align-content, space-between);
+  } @else if $align-content==space-around {
+    @include css3(align-content, space-around);
+  } @else if $align-content==stretch {
+    @include css3(align-content, stretch);
+  }
+}
+
+// flex-item
+// flex子元素，flex-grow, flex-shrink 和 flex-basis的简写，默认值为0 1 auto
+// @include flex-item(1);
+//-----------------------------------------------------
+@mixin flex-item($flex: 1) {
+  @if $flex==0 {
+    -webkit-box-flex: 0;
+    @include css3(flex, none);
+  } @else {
+    -webkit-box-flex: $flex;
+    @include css3(flex, $flex);
+  }
+}
+
+// flex-order
+// flex子元素排序：数值越小，越排前，默认为0
+// @include flex-order(1);
+//-----------------------------------------------------
+@mixin flex-order($order: 0) {
+  -webkit-box-ordinal-group: $order + 1;
+  @include css3(order, $order);
+}
+
+// flex-align-self
+// flex子元素自身对齐方式：自动（默认） | 顶部对齐 | 底部对齐 | 居中对齐 | 上下对齐并铺满 | 文本基线对齐
+// @include flex-order(1);
+//-----------------------------------------------------
+@mixin flex-align-self($align: auto) {
+  @if $align==auto {
+    @include css3(align-self, auto);
+  } @else if $align==start {
+    @include css3(align-self, flex-start);
+  } @else if $align==end {
+    @include css3(align-self, flex-end);
+  } @else if $align==center {
+    @include css3(align-self, center);
+  } @else if $align==stretch {
+    @include css3(align-self, stretch);
+  } @else if $align==baseline {
+    @include css3(align-self, baseline);
+  }
+}
+
+// keyframes
+// @include keyframes(动画名称){...}
+// @include keyframes(move-the-object) {
+//     0% {
+//         transform: translateX(0);
+//     }
+//     100% {
+//         transform: translateX(200px);
+//     }
+// }
+//-----------------------------------------------------
+@mixin keyframes($animationName) {
+  @-webkit-keyframes #{$animationName} {
+    @content;
+  }
+  @keyframes #{$animationName} {
+    @content;
+  }
+}
+
+// media query
+// @include mq-max-dw {
+//     font-size: 12px;
+// }
+//-----------------------------------------------------
+@mixin mq-min-dw($value: 320px) {
+  @media only screen and (min-device-width: $value) {
+    @content;
+  }
+}
+
+@mixin mq-max-dw($value: 320px) {
+  @media only screen and (max-device-width: $value) {
+    @content;
+  }
+}
+
+@mixin mq-mm-dw($value1: 320px, $value2: 480px) {
+  @media only screen and (min-device-width: $value1) and (max-device-width: $value2) {
+    @content;
+  }
+}
+
+@mixin mq-min-dh($value: 320px) {
+  @media only screen and (min-device-height: $value) {
+    @content;
+  }
+}
+
+@mixin mq-max-dh($value: 320px) {
+  @media only screen and (max-device-height: $value) {
+    @content;
+  }
+}
+
+@mixin mq-mm-dh($value1: 320px, $value2: 480px) {
+  @media only screen and (min-device-height: $value1) and (max-device-height: $value2) {
+    @content;
+  }
+}
+
+@mixin mq-ls {
+  @media only screen and (orientation: landscape) {
+    @content;
+  }
+}
+
+@mixin mq-dpr($dpr: 1) {
+  @media only screen and (-webkit-min-device-pixel-ratio: $dpr) {
+    @content;
+  }
+}
